@@ -1,1 +1,1 @@
-web: streamlit run energy_calculator.py
+web: streamlit run src/energy_calculator.py
