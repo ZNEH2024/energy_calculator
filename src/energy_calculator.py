@@ -10,7 +10,7 @@ def calculate_net_energy(construction_type, solar_panels, solar_thermal, stirlin
     construction_types = {
         "Traditional": 1.0,
         "Energy Star": 0.9,
-        "EnerPHIt": 0.75,
+        "EnerPHit": 0.75,
         "Passive House": 0.5
     }
     
