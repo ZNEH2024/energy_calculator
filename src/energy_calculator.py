@@ -36,7 +36,7 @@ def main():
 
     st.header("Home Specifications")
     construction_type = st.selectbox("Select the construction type:",
-                                     ("Traditional", "Energy Star", "EnerPHIt", "Passive House"))
+                                     ("Traditional", "Energy Star", "EnerPHit", "Passive House"))
     solar_panels = st.checkbox("Solar Panels Installed")
     solar_thermal = st.checkbox("Solar Thermal for Hot Water and Heating")
     stirling_chiller = st.checkbox("Stirling Chiller for Air Conditioning")
