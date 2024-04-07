@@ -16,21 +16,24 @@ TYPICAL_HVAC_COST_PER_SQFT = 10  # Typical HVAC cost per square foot of conditio
 CONDITIONED_AREA_PERCENTAGE = 0.75  # Percentage of the house that is conditioned
 TRADITIONAL_ANNUAL_KWH = 40000  # Estimated annual kWh for traditional construction
 
-def calculate_energy_cost(construction_type, square_footage):
+def calculate_energy_cost(construction_type, square_footage, primary_energy_source):
     construction_types = {
         "Traditional": 1.0,
         "Energy Star": 0.9,
         "EnerPHit": 0.75,
         "Passive House": 0.5
     }
-    
-    # Use the specific traditional annual kWh if the construction type is traditional
-    if construction_type == "Traditional":
-        return TRADITIONAL_ANNUAL_KWH, TRADITIONAL_ANNUAL_KWH * COST_PER_KWH_BUY
 
-    # Adjust energy consumption based on construction type and square footage
+    # Base annual kWh consumption for traditional construction
     base_energy_consumption = TRADITIONAL_ANNUAL_KWH * (square_footage / 1422)
-    energy_consumption = base_energy_consumption * construction_types.get(construction_type, 1.0)
+    
+    if primary_energy_source == "Solar PV":
+        # Assuming a fixed percentage of base consumption is covered by Solar PV, e.g., 30%
+        solar_pv_coverage = 0.30
+        solar_pv_savings = base_energy_consumption * solar_pv_coverage
+        energy_consumption = base_energy_consumption - solar_pv_savings
+    else:
+        energy_consumption = base_energy_consumption * construction_types.get(construction_type, 1.0)
     
     return energy_consumption, energy_consumption * COST_PER_KWH_BUY
 
