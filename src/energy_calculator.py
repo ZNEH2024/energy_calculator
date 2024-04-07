@@ -37,10 +37,14 @@ def calculate_pv_system_cost(square_footage):
     return average_system_size_kw * 1000 * AVERAGE_COST_PER_WATT_PV
 
 def calculate_solar_pv_savings(square_footage, pv_system_cost):
-    # Assume the PV system generates a certain amount of kWh per year (e.g., 1400 kWh per kW per year)
-    annual_pv_production_kwh = square_footage / 100 * 1400  # Example calculation
+    # Assume the PV system generates a certain amount of kWh per year
+    annual_pv_production_kwh = square_footage / 100 * 1400  # Example: 1400 kWh per kW per year
     annual_savings = annual_pv_production_kwh * COST_PER_KWH_BUY
-    net_savings = annual_savings - pv_system_cost
+    
+    # Assuming a 25-year lifespan for the solar PV system
+    lifetime_savings = annual_savings * 25
+    net_savings = lifetime_savings - pv_system_cost
+    
     return net_savings, annual_savings
 
 def calculate_system_cost(square_footage, primary_energy_source):
@@ -99,15 +103,15 @@ def main():
         st.write(f"Base energy consumption: {base_energy_consumption:,.2f} kWh")
         st.write(f"Traditional grid energy cost: ${traditional_grid_cost:,.2f}")
 
-        if primary_energy_source == "Solar PV":
-            pv_system_cost = costs['solar_pv_cost']
-            st.subheader("Solar PV Analysis")
-            st.write(f"Solar PV System Cost: ${pv_system_cost:,.2f}")
-            net_savings, annual_savings = calculate_solar_pv_savings(square_footage, pv_system_cost)
-            st.write(f"Annual Savings with Solar PV: ${annual_savings:,.2f}")
-            st.write(f"Net Savings with Solar PV: ${net_savings:,.2f}")
-            payback_period = calculate_payback_period(pv_system_cost, annual_savings)
-            st.write(f"Payback period for Solar PV: {payback_period} years")
+    if primary_energy_source == "Solar PV":
+        st.subheader("Solar PV Analysis")
+        st.write(f"Solar PV System Cost: ${pv_system_cost:,.2f}")
+        net_savings, annual_savings = calculate_solar_pv_savings(square_footage, pv_system_cost)
+        st.write(f"Annual Savings with Solar PV: ${annual_savings:,.2f}")
+        st.write(f"Lifetime Savings with Solar PV: ${net_savings + pv_system_cost:,.2f}")  # Adjusted for clarity
+        st.write(f"Net Savings with Solar PV (over 25 years): ${net_savings:,.2f}")
+        payback_period = calculate_payback_period(pv_system_cost, annual_savings)
+        st.write(f"Payback period for Solar PV: {payback_period} years")
             
         elif primary_energy_source == "Solar Thermal":
             st.subheader("Solar Thermal Analysis")
