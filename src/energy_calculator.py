@@ -5,6 +5,13 @@
 
 import streamlit as st
 
+# energy_calculator.py
+
+# Patent Pending, Copyright, All Rights Reserved, Service Mark (SM), 2022-2024
+# John M. Willis, Turnaround Security, Inc., Zero Net Energy Homes
+
+import streamlit as st
+
 # Constants for cost calculations and system efficiency
 COST_PER_KWH_BUY = 0.12  # Cost of buying electricity from the grid per kWh
 AVERAGE_COST_PER_WATT_PV = 3.25  # Average cost per watt for PV panels
@@ -13,6 +20,7 @@ TES_COST_PER_KWH = 0.15  # Cost per kWh for thermal energy storage capacity
 CHILLED_BEAM_COST_PER_SQFT = 22.5  # Cost per square foot for chilled beams
 TYPICAL_HVAC_COST_PER_SQFT = 10  # Typical HVAC cost per square foot of conditioned area
 TRADITIONAL_ANNUAL_KWH = 40000  # Estimated annual kWh for traditional construction
+STIRLING_GENERATOR_CAPACITY_PER_1000_SF = 5  # Capacity in kW per 1,000 square feet
 
 def calculate_energy_cost(construction_type, square_footage, primary_energy_source):
     construction_types = {
@@ -35,15 +43,17 @@ def calculate_energy_cost(construction_type, square_footage, primary_energy_sour
 
 def calculate_system_cost(square_footage, primary_energy_source, reserve_capacity):
     solar_pv_cost = square_footage * AVERAGE_COST_PER_WATT_PV if primary_energy_source == "Solar PV" else 0
-    solar_thermal_cost = tes_cost = stirling_engine_cost = stirling_chiller_cost = chilled_beam_cost = 0
-    
+    solar_thermal_cost = tes_cost = chilled_beam_cost = 0
+    stirling_engine_cost = stirling_chiller_cost = 0
+
     if primary_energy_source == "Solar Thermal":
         solar_thermal_cost = square_footage * SOLAR_THERMAL_COST_PER_SQFT
         tes_cost = reserve_capacity * TES_COST_PER_KWH
-        stirling_engine_cost = square_footage / 1000 * STIRLING_GENERATOR_CAPACITY_PER_1000_SF * STIRLING_ENGINE_COST_PER_KW
-        stirling_chiller_cost = square_footage / 1000 * STIRLING_GENERATOR_CAPACITY_PER_1000_SF * STIRLING_CHILLER_COST_PER_KW
         chilled_beam_cost = square_footage * CHILLED_BEAM_COST_PER_SQFT
-    
+        stirling_engine_capacity = square_footage / 1000 * STIRLING_GENERATOR_CAPACITY_PER_1000_SF
+        stirling_engine_cost = stirling_engine_capacity * STIRLING_ENGINE_COST_PER_KW  # Assume a cost per kW for the engine
+        stirling_chiller_cost = stirling_engine_capacity * STIRLING_CHILLER_COST_PER_KW  # Assume a cost per kW for the chiller
+
     traditional_hvac_cost = square_footage * TYPICAL_HVAC_COST_PER_SQFT
 
     return {
