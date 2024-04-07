@@ -61,7 +61,7 @@ def calculate_system_cost(square_footage, primary_energy_source, reserve_capacit
 def calculate_solar_thermal_area(square_footage):
     return square_footage * 0.5
 
-def calculate_payback_period(net_system_cost, traditional_grid_cost, annual_energy_savings):
+def calculate_payback_period(net_system_cost, annual_energy_savings):
     if annual_energy_savings <= 0:
         return "Infinite (no savings)"
     
@@ -91,7 +91,7 @@ def main():
     if primary_energy_source == "Solar PV":
         st.write(f"Solar PV System Cost: ${costs['solar_pv_cost']:.2f}")
         st.write(f"Savings with Solar PV: ${traditional_grid_cost - renewable_energy_cost:.2f}")
-        payback_period = calculate_payback_period(costs['solar_pv_cost'], traditional_grid_cost, renewable_energy_cost)
+        payback_period = calculate_payback_period(costs['solar_pv_cost'], traditional_grid_cost - renewable_energy_cost)
         st.write(f"Payback period for Solar PV: {payback_period} years")
         
     elif primary_energy_source == "Solar Thermal":
@@ -105,8 +105,8 @@ def main():
         total_solar_thermal_cost = costs['solar_thermal_cost'] + costs['tes_cost'] + \
                                    costs['stirling_engine_cost'] + costs['stirling_chiller_cost'] + \
                                    costs['chilled_beam_cost']
-        net_system_cost = total_solar_thermal_cost - costs['traditional_hvac_cost']
         st.write(f"Total Solar Thermal System Cost (before HVAC offset): ${total_solar_thermal_cost:.2f}")
+        net_system_cost = total_solar_thermal_cost - costs['traditional_hvac_cost']
         st.write(f"Net System Cost (after HVAC offset): ${net_system_cost:.2f}")
         solar_thermal_area = calculate_solar_thermal_area(square_footage)
         st.write(f"Yard space required for Solar Thermal: {solar_thermal_area:.2f} square feet")
