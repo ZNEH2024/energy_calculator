@@ -109,7 +109,7 @@ def main():
                 st.write(f"**Chilled Beams:** ${chilled_beam_cost:,.2f}")
                 st.write(f"**Offset Traditional HVAC Cost:** ${traditional_hvac_cost:,.2f}")
             st.write(f"**Annual Savings with Solar Thermal:** ${annual_st_savings:,.2f}")
-            st.write(f"**Lifetime Savings with Solar Thermal:** ${lifetime_st_savings:,.2f}")
+            st.write(f"**Lifetime Savings with Solar Thermal (over {SYSTEM_LIFESPAN_YEARS} years):** ${lifetime_st_savings:,.2f}")
             payback_period = calculate_payback_period(net_cost, annual_st_savings)
             st.write(f"**Payback period for Solar Thermal:** {payback_period:.2f} years")
 
