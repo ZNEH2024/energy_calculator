@@ -6,8 +6,7 @@
 import streamlit as st
 
 # Constants for cost calculations and system efficiency
-COST_PER_KWH_BUY = 0.12  # Cost of buying electricity from the grid per kWh
-AVERAGE_COST_PER_WATT_PV = 3.25  # Average cost per watt for PV panels
+COST_PER_WATT_PV = 3  # Cost per watt for PV installation
 SOLAR_THERMAL_COST_PER_SQFT = 2  # Cost per square foot for solar thermal collectors
 TES_EQUIPMENT_COST = 4000  # Fixed equipment cost for Thermal Energy Storage (TES)
 SOLAR_THERMAL_CONTROL_SYSTEM_COST = 3000  # Cost for the Solar Thermal control system equipment
@@ -30,22 +29,18 @@ def calculate_energy_cost(construction_type, square_footage):
     
     return base_energy_consumption, energy_cost
 
+def calculate_pv_system_cost():
+    # Average system size based on typical roof area for U.S. single-family homes
+    average_system_size_kw = 6  # kW
+    return average_system_size_kw * 1000 * COST_PER_WATT_PV
+
 def calculate_system_cost(square_footage, primary_energy_source):
-    solar_pv_cost = solar_thermal_cost = tes_cost = chilled_beam_cost = 0
+    solar_pv_cost = 0
+    solar_thermal_cost = tes_cost = chilled_beam_cost = 0
     stirling_engine_cost = stirling_chiller_cost = solar_thermal_control_system_cost = 0
 
-    # Constants for PV system
-    COST_PER_WATT_PV = 3  # Cost per watt for PV installation
-    PV_EFFICIENCY = 0.18  # 18% efficiency
-    PV_COST_PER_SQFT_LOW = 0.16  # Low end of cost per square foot range
-    PV_COST_PER_SQFT_HIGH = 0.22  # High end of cost per square foot range
-
     if primary_energy_source == "Solar PV":
-        # Estimate the system size needed based on square footage and efficiency
-        # For simplicity, using average cost per square foot for initial calculation
-        average_cost_per_sqft_pv = (PV_COST_PER_SQFT_LOW + PV_COST_PER_SQFT_HIGH) / 2
-        system_size_kw = (square_footage * average_cost_per_sqft_pv) / COST_PER_WATT_PV
-        solar_pv_cost = system_size_kw * 1000 * COST_PER_WATT_PV  # Convert kW to watts for total cost
+        solar_pv_cost = calculate_pv_system_cost()
 
     if primary_energy_source == "Solar Thermal":
         stirling_engine_capacity = STIRLING_GENERATOR_CAPACITY_PER_1000_SF * (square_footage / 1000)
@@ -84,7 +79,7 @@ def main():
 
     with st.sidebar:
         construction_type = st.selectbox("Select the construction type:", 
-                                         ["Traditional", "Energy Star", "EnerPHit", "Passive House"], index=0)
+                                         ["Traditional", "Energy Star", "EnerPHit", "Passive House"])
         square_footage = st.slider("Home Square Footage", 1000, 3500, 1422, step=100)
         primary_energy_source = st.radio("Select Primary Energy Source", 
                                          ["Solar PV", "Solar Thermal", "Electric Grid"], index=2)
@@ -93,7 +88,7 @@ def main():
         base_energy_consumption, traditional_grid_cost = calculate_energy_cost(construction_type, square_footage)
         costs = calculate_system_cost(square_footage, primary_energy_source)
 
-        st.header(f"Energy Cost Analysis")
+        st.header(f"Energy Cost Analysis for {square_footage} SF Home")
         st.write(f"Construction type: {construction_type}")
         st.write(f"Square footage: {square_footage}")
         st.subheader("Traditional Energy Costs")
@@ -103,9 +98,10 @@ def main():
         if primary_energy_source == "Solar PV":
             st.subheader("Solar PV Analysis")
             st.write(f"Solar PV System Cost: ${costs['solar_pv_cost']:,.2f}")
-            st.write(f"Savings with Solar PV: ${traditional_grid_cost - costs['solar_pv_cost']:,.2f}")
-            payback_period = calculate_payback_period(costs['solar_pv_cost'], traditional_grid_cost - costs['solar_pv_cost'])
-            st.write(f"Payback period for Solar PV: {payback_period} years")
+            savings = traditional_grid_cost - costs['solar_pv_cost']
+            st.write(f"Savings with Solar PV: ${savings:,.2f}")
+            payback_period = calculate_payback_period(costs['solar_pv_cost'], savings)
+            st.write(f"Payback period for Solar PV: {payback_period}")
             
         elif primary_energy_source == "Solar Thermal":
             st.subheader("Solar Thermal Analysis")
@@ -133,7 +129,7 @@ def main():
             st.write(f"Annual Energy Savings: ${annual_energy_savings:,.2f}")
             
             payback_period = calculate_payback_period(net_system_cost, annual_energy_savings)
-            st.write(f"Payback period for Solar Thermal: {payback_period} years")
+            st.write(f"Payback period for Solar Thermal: {payback_period}")
 
 if __name__ == "__main__":
     main()
