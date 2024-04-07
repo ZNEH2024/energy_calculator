@@ -3,6 +3,9 @@
 # Patent Pending, Copyright, All Rights Reserved, Service Mark (SM), 2022-2024
 # John M. Willis, Turnaround Security, Inc., Zero Net Energy Homes
 
+# This version works well, except that the baseline energy consumption is not scaled.
+# Attempts to fix beyond this point resulting in conde features being dropped.
+
 import streamlit as st
 
 # Constants for cost calculations and system efficiency
@@ -22,6 +25,13 @@ REFERENCE_SQUARE_FEET = 1422
 REFERENCE_MONTHLY_COST = 400
 REFERENCE_ANNUAL_COST = REFERENCE_MONTHLY_COST * 12
 REFERENCE_ANNUAL_KWH = REFERENCE_ANNUAL_COST / COST_PER_KWH_BUY  # Calculate kWh based on reference cost
+
+def calculate_baseline_energy_cost(square_footage):
+    # Baseline energy consumption and cost based on traditional grid usage
+    scaling_factor = square_footage / REFERENCE_SQUARE_FEET
+    baseline_energy_consumption = REFERENCE_ANNUAL_KWH * scaling_factor
+    baseline_energy_cost = baseline_energy_consumption * COST_PER_KWH_BUY
+    return baseline_energy_consumption, baseline_energy_cost
 
 def calculate_energy_cost(construction_type, square_footage):
     construction_types = {
