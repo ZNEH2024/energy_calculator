@@ -83,7 +83,8 @@ def main():
     st.write(f"Traditional grid energy cost for {square_footage} SF home: ${traditional_grid_cost:.2f}")
 
     if primary_energy_source == "Solar PV":
-        # Logic for Solar PV
+        # Add logic for Solar PV
+        pass  # Placeholder for actual logic
 
     elif primary_energy_source == "Solar Thermal":
         st.write("Solar Thermal System Cost Breakdown:")
@@ -92,7 +93,7 @@ def main():
         st.write(f"Stirling Engine: ${costs['stirling_engine_cost']:.2f}")
         st.write(f"Stirling Chiller: ${costs['stirling_chiller_cost']:.2f}")
         st.write(f"Chilled Beams: ${costs['chilled_beam_cost']:.2f}")
-        
+
         total_solar_thermal_cost = costs['solar_thermal_cost'] + costs['tes_cost'] + \
                                    costs['stirling_engine_cost'] + costs['stirling_chiller_cost'] + \
                                    costs['chilled_beam_cost']
@@ -100,7 +101,7 @@ def main():
         net_system_cost = total_solar_thermal_cost - costs['traditional_hvac_cost']
         st.write(f"Net System Cost (after HVAC offset): ${net_system_cost:.2f}")
         solar_thermal_area = calculate_solar_thermal_area(square_footage)
-        st.write(f"Yard space required for Solar Thermal: {solar_thermal_area:.2f} square feet")
+        st.write(f"Yard space required for Solar Thermal: {solar_thermal_area:.2f}")
 
         annual_energy_savings = traditional_grid_cost  # As Solar Thermal covers all electricity needs
         st.write(f"Annual Energy Savings: ${annual_energy_savings:.2f}")
