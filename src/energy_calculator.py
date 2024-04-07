@@ -44,8 +44,10 @@ def calculate_solar_thermal_cost(square_footage):
     stirling_engine_cost = STIRLING_ENGINE_COST
     stirling_chiller_cost = STIRLING_CHILLER_COST
     chilled_beam_cost = square_footage * CHILLED_BEAM_COST_PER_SQFT
+    traditional_hvac_cost = square_footage * TYPICAL_HVAC_COST_PER_SQFT
     total_cost = solar_thermal_array_cost + tes_cost + stirling_engine_cost + stirling_chiller_cost + chilled_beam_cost
-    return total_cost, solar_thermal_array_cost, tes_cost, stirling_engine_cost, stirling_chiller_cost, chilled_beam_cost
+    net_cost = total_cost - traditional_hvac_cost  # Offsetting with traditional HVAC cost
+    return net_cost, solar_thermal_array_cost, tes_cost, stirling_engine_cost, stirling_chiller_cost, chilled_beam_cost, traditional_hvac_cost
 
 def calculate_solar_thermal_savings(traditional_grid_cost):
     annual_savings = traditional_grid_cost
@@ -61,23 +63,25 @@ def main():
     st.title("Zero Net Energy Home Calculator")
 
     with st.sidebar:
-        construction_type = st.selectbox("Select the construction type:", ["Traditional", "Energy Star", "EnerPHit", "Passive House"])
+        construction_type = st.selectbox("Select the construction type:", ["Traditional", "Energy Star", "EnerPHit", "Passive House"], index=0)
         square_footage = st.slider("Home Square Footage", 1000, 3500, 2000, step=100)
-        primary_energy_source = st.radio("Select Primary Energy Source", ["Solar PV", "Solar Thermal", "Electric Grid"])
+        primary_energy_source = st.radio("Select Primary Energy Source", ["Solar PV", "Solar Thermal", "Electric Grid"], index=2)
 
     if st.button('Calculate'):
         base_energy_consumption, traditional_grid_cost = calculate_energy_cost(construction_type)
-        pv_system_cost = calculate_pv_system_cost()
-        annual_pv_savings, lifetime_pv_savings = calculate_solar_pv_savings()
-        
-        solar_thermal_cost, solar_thermal_array_cost, tes_cost, stirling_engine_cost, stirling_chiller_cost, chilled_beam_cost = calculate_solar_thermal_cost(square_footage)
-        annual_st_savings, lifetime_st_savings = calculate_solar_thermal_savings(traditional_grid_cost)
         
         st.header("Energy Cost Analysis")
         st.write(f"**Construction type:** {construction_type}")
         st.write(f"**Square footage:** {square_footage} sq ft")
+        
+        st.subheader("Traditional Electrical Grid Option")
+        st.write(f"**Base energy consumption:** {base_energy_consumption:,.2f} kWh/year")
+        st.write(f"**Traditional grid energy cost:** ${traditional_grid_cost:,.2f}/year")
 
         if primary_energy_source == "Solar PV":
+            pv_system_cost = calculate_pv_system_cost()
+            annual_pv_savings, lifetime_pv_savings = calculate_solar_pv_savings()
+
             st.subheader("Solar PV Analysis")
             st.write(f"**Solar PV System Cost:** ${pv_system_cost:,.2f}")
             st.write(f"**Annual Savings with Solar PV:** ${annual_pv_savings:,.2f}")
@@ -86,17 +90,21 @@ def main():
             st.write(f"**Payback period for Solar PV:** {payback_period:.2f} years")
 
         elif primary_energy_source == "Solar Thermal":
+            net_cost, solar_thermal_array_cost, tes_cost, stirling_engine_cost, stirling_chiller_cost, chilled_beam_cost, traditional_hvac_cost = calculate_solar_thermal_cost(square_footage)
+            annual_st_savings, lifetime_st_savings = calculate_solar_thermal_savings(traditional_grid_cost)
+
             st.subheader("Solar Thermal Analysis")
-            st.write(f"**Solar Thermal System Cost:** ${solar_thermal_cost:,.2f}")
+            st.write(f"**Net Solar Thermal System Cost (after HVAC offset):** ${net_cost:,.2f}")
             with st.expander("Total System Cost Breakdown"):
                 st.write(f"**Solar Thermal Collector array:** ${solar_thermal_array_cost:,.2f}")
                 st.write(f"**Thermal Energy Storage (TES):** ${tes_cost:,.2f}")
                 st.write(f"**Stirling Engine Generator:** ${stirling_engine_cost:,.2f}")
                 st.write(f"**Stirling Engine Chiller:** ${stirling_chiller_cost:,.2f}")
                 st.write(f"**Chilled Beams:** ${chilled_beam_cost:,.2f}")
+                st.write(f"**Offset Traditional HVAC Cost:** ${traditional_hvac_cost:,.2f}")
             st.write(f"**Annual Savings with Solar Thermal:** ${annual_st_savings:,.2f}")
             st.write(f"**Lifetime Savings with Solar Thermal:** ${lifetime_st_savings:,.2f}")
-            payback_period = calculate_payback_period(solar_thermal_cost, annual_st_savings)
+            payback_period = calculate_payback_period(net_cost, annual_st_savings)
             st.write(f"**Payback period for Solar Thermal:** {payback_period:.2f} years")
 
 if __name__ == "__main__":
