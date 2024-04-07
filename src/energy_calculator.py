@@ -22,7 +22,6 @@ def calculate_energy_cost(construction_type, square_footage, primary_energy_sour
         "EnerPHit": 0.75,
         "Passive House": 0.5
     }
-    
     base_energy_consumption = 12000 * (square_footage / 2000)  # Base annual kWh for traditional construction
     energy_consumption = base_energy_consumption * construction_types.get(construction_type, 1.0)
     
@@ -65,23 +64,14 @@ def main():
         traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
         renewable_energy_cost = calculate_energy_cost(construction_type, square_footage, primary_energy_source)
         
-        st.write(f"Energy cost from the grid (Traditional): ${traditional_grid_cost:.2f}")
-        st.write(f"Energy cost from {primary_energy_source}: ${renewable_energy_cost:.2f}")
-
         solar_pv_cost, solar_thermal_cost, tes_cost, chilled_beam_cost, hvac_cost = calculate_system_cost(square_footage, primary_energy_source, reserve_capacity)
         
-        total_system_cost = solar_pv_cost if primary_energy_source == "Solar PV" else solar_thermal_cost + tes_cost + chilled_beam_cost
-        payback_period = calculate_payback_period(total_system_cost, traditional_grid_cost, renewable_energy_cost)
-        
-        if primary_energy_source == "Solar PV":
-            st.write(f"Solar PV System Cost: ${solar_pv_cost:.2f}")
-        elif primary_energy_source == "Solar Thermal":
-            st.write(f"Solar Thermal System Cost: ${solar_thermal_cost:.2f}")
-            st.write(f"TES Cost for {reserve_capacity} days: ${tes_cost:.2f}")
-            st.write(f"Chilled Beam Cost: ${chilled_beam_cost:.2f}")
-        
         if primary_energy_source in ["Solar PV", "Solar Thermal"]:
-            st.write(f"Payback period: {payback_period} years")
+            total_system_cost = solar_pv_cost if primary_energy_source == "Solar PV" else solar_thermal_cost + tes_cost + chilled_beam_cost
+            additional_energy_cost = max(renewable_energy_cost, 0)
+            st.write(f"Additional energy cost when using {primary_energy_source}: ${additional_energy_cost:.2f}")
+            payback_period = calculate_payback_period(total_system_cost, traditional_grid_cost, renewable_energy_cost)
+            st.write(f"Payback period for {primary_energy_source}: {payback_period} years")
         
         if primary_energy_source == "Electric Grid":
             st.write(f"HVAC Cost: ${hvac_cost:.2f}")
