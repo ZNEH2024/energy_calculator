@@ -14,18 +14,23 @@ TES_EQUIPMENT_COST = 4000  # Fixed equipment cost for Thermal Energy Storage (TE
 STIRLING_ENGINE_COST = 5000  # Estimated cost for Stirling Engine Generator
 STIRLING_CHILLER_COST = 3000  # Estimated cost for Stirling Engine Chiller
 CHILLED_BEAM_COST_PER_SQFT = 22.5  # Cost per square foot for chilled beams
-TYPICAL_HVAC_COST_PER_SQFT = 10  # Typical HVAC cost per square foot of conditioned area
-TRADITIONAL_ANNUAL_KWH = 40000  # Estimated annual kWh for traditional construction
 SYSTEM_LIFESPAN_YEARS = 25  # Lifespan of the solar systems in years
 
-def calculate_energy_cost(construction_type):
+# Reference point: $400 per month for 1,422 square feet
+REFERENCE_SQUARE_FEET = 1422
+REFERENCE_MONTHLY_COST = 400
+REFERENCE_ANNUAL_COST = REFERENCE_MONTHLY_COST * 12
+REFERENCE_ANNUAL_KWH = REFERENCE_ANNUAL_COST / COST_PER_KWH_BUY  # Calculate kWh based on reference cost
+
+def calculate_energy_cost(construction_type, square_footage):
     construction_types = {
         "Traditional": 1.0,
         "Energy Star": 0.9,
         "EnerPHit": 0.75,
         "Passive House": 0.5
     }
-    base_energy_consumption = TRADITIONAL_ANNUAL_KWH * construction_types[construction_type]
+    # Scale the baseline energy consumption based on square footage
+    base_energy_consumption = REFERENCE_ANNUAL_KWH * (square_footage / REFERENCE_SQUARE_FEET) * construction_types[construction_type]
     energy_cost = base_energy_consumption * COST_PER_KWH_BUY
     return base_energy_consumption, energy_cost
 
@@ -63,17 +68,17 @@ def main():
     st.title("Zero Net Energy Home Calculator")
 
     with st.sidebar:
-        construction_type = st.selectbox("Select the construction type:", ["Traditional", "Energy Star", "EnerPHit", "Passive House"], index=0)
+        construction_type = st.selectbox("Select the construction type:", ["Traditional", "Energy Star", "EnerPHit", "Passive House"])
         square_footage = st.slider("Home Square Footage", 1000, 3500, 2000, step=100)
-        primary_energy_source = st.radio("Select Primary Energy Source", ["Solar PV", "Solar Thermal", "Electric Grid"], index=2)
+        primary_energy_source = st.radio("Select Primary Energy Source", ["Solar PV", "Solar Thermal", "Electric Grid"])
 
     if st.button('Calculate'):
-        base_energy_consumption, traditional_grid_cost = calculate_energy_cost(construction_type)
+        base_energy_consumption, traditional_grid_cost = calculate_energy_cost(construction_type, square_footage)
         
         st.header("Energy Cost Analysis")
         st.write(f"**Construction type:** {construction_type}")
         st.write(f"**Square footage:** {square_footage} sq ft")
-        
+
         st.subheader("Traditional Electrical Grid Option")
         st.write(f"**Base energy consumption:** {base_energy_consumption:,.2f} kWh/year")
         st.write(f"**Traditional grid energy cost:** ${traditional_grid_cost:,.2f}/year")
