@@ -14,22 +14,25 @@ CHILLED_BEAM_COST_PER_SQFT = 22.5  # Cost per square foot for chilled beams
 CHILLED_BEAM_COVERAGE_FACTOR = 0.75  # Coverage factor for chilled beams
 TYPICAL_HVAC_COST_PER_SQFT = 10  # Typical HVAC cost per square foot of conditioned area
 CONDITIONED_AREA_PERCENTAGE = 0.75  # Percentage of the house that is conditioned
+TRADITIONAL_ANNUAL_KWH = 40000  # Estimated annual kWh for traditional construction
 
-def calculate_energy_cost(construction_type, square_footage, primary_energy_source):
+def calculate_energy_cost(construction_type, square_footage):
     construction_types = {
         "Traditional": 1.0,
         "Energy Star": 0.9,
         "EnerPHit": 0.75,
         "Passive House": 0.5
     }
-    base_energy_consumption = 12000 * (square_footage / 2000)  # Base annual kWh for traditional construction
+    
+    # Use the specific traditional annual kWh if the construction type is traditional
+    if construction_type == "Traditional":
+        return TRADITIONAL_ANNUAL_KWH, TRADITIONAL_ANNUAL_KWH * COST_PER_KWH_BUY
+
+    # Adjust energy consumption based on construction type and square footage
+    base_energy_consumption = TRADITIONAL_ANNUAL_KWH * (square_footage / 1422)
     energy_consumption = base_energy_consumption * construction_types.get(construction_type, 1.0)
     
-    if primary_energy_source == "Solar PV":
-        solar_energy_generation = 3000 * (square_footage / 2000)  # Placeholder for solar PV generation
-        energy_consumption -= solar_energy_generation
-    
-    return max(energy_consumption, 0) * COST_PER_KWH_BUY
+    return energy_consumption, energy_consumption * COST_PER_KWH_BUY
 
 def calculate_system_cost(square_footage, primary_energy_source, reserve_capacity):
     solar_pv_cost = square_footage * AVERAGE_COST_PER_WATT_PV if primary_energy_source == "Solar PV" else 0
@@ -60,31 +63,24 @@ def main():
     primary_energy_source = st.radio("Select Primary Energy Source", ["Solar PV", "Solar Thermal", "Electric Grid"])
     reserve_capacity = st.slider("Days of Reserve Capacity", 0, 7, step=1) if primary_energy_source == "Solar Thermal" else 0
 
-    if st.button("Calculate Energy Needs and Costs"):
-        traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
-        renewable_energy_cost = calculate_energy_cost(construction_type, square_footage, primary_energy_source)
-        
-        solar_pv_cost, solar_thermal_cost, tes_cost, chilled_beam_cost, traditional_hvac_cost = calculate_system_cost(square_footage, primary_energy_source, reserve_capacity)
-        total_system_cost = solar_pv_cost + solar_thermal_cost + tes_cost + chilled_beam_cost - traditional_hvac_cost
-        
-        st.write(f"Traditional grid energy cost: ${traditional_grid_cost:.2f}")
+    traditional_energy_kWh, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage)
+    renewable_energy_kWh, renewable_energy_cost = calculate_energy_cost(construction_type, square_footage)
+    
+    st.write(f"Traditional grid energy cost: ${traditional_grid_cost:.2f}")
+
+    solar_pv_cost, solar_thermal_cost, tes_cost, chilled_beam_cost, traditional_hvac_cost = calculate_system_cost(square_footage, primary_energy_source, reserve_capacity)
+    
+    if primary_energy_source in ["Solar PV", "Solar Thermal"]:
+        renewable_system_cost = solar_pv_cost if primary_energy_source == "Solar PV" else solar_thermal_cost + tes_cost + chilled_beam_cost
         st.write(f"{primary_energy_source} energy cost: ${renewable_energy_cost:.2f}")
+        st.write(f"Savings with {primary_energy_source}: ${traditional_grid_cost - renewable_energy_cost:.2f}")
+        st.write(f"Total system cost for {primary_energy_source}: ${renewable_system_cost:.2f}")
+
+        payback_period = calculate_payback_period(renewable_system_cost, traditional_grid_cost, renewable_energy_cost)
+        st.write(f"Payback period for {primary_energy_source}: {payback_period} years")
         
-        if primary_energy_source == "Solar PV":
-            st.write(f"Solar PV System Cost: ${solar_pv_cost:.2f}")
-            payback_period = calculate_payback_period(solar_pv_cost, traditional_grid_cost, renewable_energy_cost)
-            st.write(f"Payback period for Solar PV: {payback_period} years")
-        
-        elif primary_energy_source == "Solar Thermal":
-            st.write(f"Solar Thermal System Cost: ${solar_thermal_cost:.2f}")
-            st.write(f"TES Cost for {reserve_capacity} days: ${tes_cost:.2f}")
-            st.write(f"Chilled Beam Cost: ${chilled_beam_cost:.2f}")
-            st.write(f"Net System Cost after subtracting Traditional HVAC: ${total_system_cost:.2f}")
-            payback_period = calculate_payback_period(total_system_cost, traditional_grid_cost, renewable_energy_cost)
-            st.write(f"Payback period for Solar Thermal: {payback_period} years")
-        
-        elif primary_energy_source == "Electric Grid":
-            st.write(f"Traditional HVAC Cost: ${traditional_hvac_cost:.2f}")
+    if primary_energy_source == "Electric Grid":
+        st.write(f"Traditional HVAC Cost: ${traditional_hvac_cost:.2f}")
 
 if __name__ == "__main__":
     main()
