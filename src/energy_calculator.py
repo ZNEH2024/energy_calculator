@@ -18,17 +18,17 @@ STIRLING_GENERATOR_CAPACITY_PER_1000_SF = 5  # Capacity in kW per 1,000 square f
 STIRLING_ENGINE_COST_PER_KW = 500  # Equipment cost per kW for the Stirling Engine
 STIRLING_CHILLER_COST_PER_KW = 600  # Equipment cost per kW for the Stirling Chiller
 
-def calculate_energy_cost(construction_type, square_footage, primary_energy_source):
+def calculate_energy_cost(construction_type, square_footage):
     construction_types = {
         "Traditional": 1.0,
         "Energy Star": 0.9,
         "EnerPHit": 0.75,
         "Passive House": 0.5
     }
-    base_energy_consumption = TRADITIONAL_ANNUAL_KWH * (square_footage / 1422)
-    energy_consumption = base_energy_consumption * construction_types.get(construction_type, 1.0)
+    base_energy_consumption = TRADITIONAL_ANNUAL_KWH * construction_types[construction_type] * (square_footage / 1422)
+    energy_cost = base_energy_consumption * COST_PER_KWH_BUY
     
-    return energy_consumption, energy_consumption * COST_PER_KWH_BUY
+    return base_energy_consumption, energy_cost
 
 def calculate_system_cost(square_footage, primary_energy_source):
     solar_pv_cost = solar_thermal_cost = tes_cost = chilled_beam_cost = 0
@@ -71,17 +71,20 @@ def main():
 
     with st.sidebar:
         construction_type = st.selectbox("Select the construction type:", 
-                                         ["Traditional", "Energy Star", "EnerPHit", "Passive House"])
+                                         ["Traditional", "Energy Star", "EnerPHit", "Passive House"], index=0)
         square_footage = st.slider("Home Square Footage", 1000, 3500, 1422, step=100)
         primary_energy_source = st.radio("Select Primary Energy Source", 
                                          ["Solar PV", "Solar Thermal", "Electric Grid"], index=2)
 
     if st.button('Calculate'):
-        _, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
+        base_energy_consumption, traditional_grid_cost = calculate_energy_cost(construction_type, square_footage)
         costs = calculate_system_cost(square_footage, primary_energy_source)
 
-        st.header(f"Energy Cost Analysis for {square_footage} SF Home")
+        st.header(f"Energy Cost Analysis")
+        st.write(f"Construction type: {construction_type}")
+        st.write(f"Square footage: {square_footage}")
         st.subheader("Traditional Energy Costs")
+        st.write(f"Base energy consumption: {base_energy_consumption:,.2f} kWh")
         st.write(f"Traditional grid energy cost: ${traditional_grid_cost:,.2f}")
 
         if primary_energy_source == "Solar PV":
