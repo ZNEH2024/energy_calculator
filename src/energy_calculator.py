@@ -6,6 +6,7 @@
 import streamlit as st
 
 # Constants for cost calculations and system efficiency
+COST_PER_KWH_BUY = 0.12  # Cost of buying electricity from the grid per kWh
 COST_PER_WATT_PV = 3  # Cost per watt for PV installation
 SOLAR_THERMAL_COST_PER_SQFT = 2  # Cost per square foot for solar thermal collectors
 TES_EQUIPMENT_COST = 4000  # Fixed equipment cost for Thermal Energy Storage (TES)
