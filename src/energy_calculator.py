@@ -34,6 +34,11 @@ def calculate_system_cost(square_footage, primary_energy_source):
     solar_pv_cost = solar_thermal_cost = tes_cost = chilled_beam_cost = 0
     stirling_engine_cost = stirling_chiller_cost = solar_thermal_control_system_cost = 0
 
+    # Calculate Solar PV cost based on square footage and average cost per watt
+    if primary_energy_source == "Solar PV":
+        estimated_pv_capacity = square_footage / 100  # Example scaling factor, adjust as necessary
+        solar_pv_cost = estimated_pv_capacity * AVERAGE_COST_PER_WATT_PV
+
     if primary_energy_source == "Solar Thermal":
         stirling_engine_capacity = STIRLING_GENERATOR_CAPACITY_PER_1000_SF * (square_footage / 1000)
         solar_thermal_cost = square_footage * SOLAR_THERMAL_COST_PER_SQFT
