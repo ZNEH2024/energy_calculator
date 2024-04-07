@@ -66,8 +66,9 @@ def main():
     primary_energy_source = st.radio("Select Primary Energy Source", ["Solar PV", "Solar Thermal", "Electric Grid"])
     reserve_capacity = st.slider("Days of Reserve Capacity", 0, 7, step=1) if primary_energy_source == "Solar Thermal" else 0
 
-    traditional_energy_kWh, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage)
-    renewable_energy_kWh, renewable_energy_cost = calculate_energy_cost(construction_type, square_footage)
+    # Corrected call: Include 'primary_energy_source' for the traditional calculation
+    traditional_energy_kWh, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
+    renewable_energy_kWh, renewable_energy_cost = calculate_energy_cost(construction_type, square_footage, primary_energy_source)
     
     st.write(f"Traditional grid energy cost: ${traditional_grid_cost:.2f}")
 
