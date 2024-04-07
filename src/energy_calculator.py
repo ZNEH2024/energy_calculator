@@ -22,11 +22,11 @@ def calculate_energy_cost(construction_type, square_footage, primary_energy_sour
         "EnerPHit": 0.75,
         "Passive House": 0.5
     }
-    base_energy_consumption = 12000 * (square_footage / 2000)  # Base annual kWh for traditional construction
+    base_energy_consumption = 12000 * (square_footage / 2000)
     energy_consumption = base_energy_consumption * construction_types.get(construction_type, 1.0)
     
     if primary_energy_source == "Solar PV":
-        solar_energy_generation = 3000 * (square_footage / 2000)  # Placeholder for solar PV generation
+        solar_energy_generation = 3000 * (square_footage / 2000)
         energy_consumption -= solar_energy_generation
     
     return max(energy_consumption, 0) * COST_PER_KWH_BUY
@@ -47,6 +47,14 @@ def calculate_system_cost(square_footage, primary_energy_source, reserve_capacit
 def calculate_savings(traditional_cost, renewable_cost):
     return traditional_cost - renewable_cost
 
+def calculate_payback_period(system_cost, annual_grid_cost, annual_renewable_cost):
+    annual_savings = annual_grid_cost - annual_renewable_cost
+    if annual_savings <= 0:
+        return "Infinite (no savings)"
+    
+    payback_period = system_cost / annual_savings
+    return f"{payback_period:.2f} years"
+
 def main():
     st.title("Zero Net Energy Home Calculator")
 
@@ -59,19 +67,21 @@ def main():
         traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
         renewable_energy_cost = calculate_energy_cost(construction_type, square_footage, primary_energy_source)
         
-        savings = calculate_savings(traditional_grid_cost, renewable_energy_cost)
-        st.write(f"Traditional grid energy cost: ${traditional_grid_cost:.2f}")
-        st.write(f"{primary_energy_source} energy cost: ${renewable_energy_cost:.2f}")
-        st.write(f"Savings with {primary_energy_source}: ${savings:.2f}")
-
         solar_pv_cost, solar_thermal_cost, tes_cost, chilled_beam_cost, hvac_cost = calculate_system_cost(square_footage, primary_energy_source, reserve_capacity)
-        net_cost = (solar_pv_cost + tes_cost + chilled_beam_cost) if primary_energy_source != "Electric Grid" else hvac_cost
-        
-        st.write(f"Total system cost for {primary_energy_source}: ${net_cost:.2f}")
         
         if primary_energy_source in ["Solar PV", "Solar Thermal"]:
-            payback_period = calculate_payback_period(net_cost, traditional_grid_cost, renewable_energy_cost)
+            total_system_cost = solar_pv_cost + tes_cost + chilled_beam_cost if primary_energy_source == "Solar Thermal" else solar_pv_cost
+            additional_energy_cost = max(renewable_energy_cost, 0)
+            st.write(f"Traditional grid energy cost: ${traditional_grid_cost:.2f}")
+            st.write(f"{primary_energy_source} energy cost: ${renewable_energy_cost:.2f}")
+            st.write(f"Savings with {primary_energy_source}: ${traditional_grid_cost - renewable_energy_cost:.2f}")
+            st.write(f"Total system cost for {primary_energy_source}: ${total_system_cost:.2f}")
+
+            payback_period = calculate_payback_period(total_system_cost, traditional_grid_cost, renewable_energy_cost)
             st.write(f"Payback period for {primary_energy_source}: {payback_period} years")
+        
+        if primary_energy_source == "Electric Grid":
+            st.write(f"HVAC Cost: ${hvac_cost:.2f}")
 
 if __name__ == "__main__":
     main()
