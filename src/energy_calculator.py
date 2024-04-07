@@ -25,13 +25,8 @@ def calculate_energy_cost(construction_type, square_footage, primary_energy_sour
         "Passive House": 0.5
     }
     base_energy_consumption = TRADITIONAL_ANNUAL_KWH * (square_footage / 1422)
-
     energy_consumption = base_energy_consumption * construction_types.get(construction_type, 1.0)
-    if primary_energy_source == "Solar Thermal":
-        energy_consumption *= construction_types.get(construction_type)
-    elif primary_energy_source == "Solar PV":
-        energy_consumption *= 0.70  # Assuming Solar PV covers 70% of the energy needs
-
+    
     return energy_consumption, energy_consumption * COST_PER_KWH_BUY
 
 def calculate_system_cost(square_footage, primary_energy_source, reserve_capacity):
@@ -81,12 +76,12 @@ def main():
     if primary_energy_source == "Solar Thermal":
         reserve_capacity = st.slider("Days of Reserve Capacity", 0, 7, step=1)
 
-    traditional_energy_kWh, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
-    renewable_energy_kWh, renewable_energy_cost = calculate_energy_cost(construction_type, square_footage, primary_energy_source)
+    _, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
+    _, renewable_energy_cost = calculate_energy_cost(construction_type, square_footage, primary_energy_source)
 
     costs = calculate_system_cost(square_footage, primary_energy_source, reserve_capacity)
     
-    st.write(f"Traditional grid energy cost: ${traditional_grid_cost:.2f}")
+    st.write(f"Traditional grid energy cost for {square_footage} SF home: ${traditional_grid_cost:.2f}")
 
     if primary_energy_source == "Solar PV":
         st.write(f"Solar PV System Cost: ${costs['solar_pv_cost']:.2f}")
@@ -110,6 +105,7 @@ def main():
         st.write(f"Net System Cost (after HVAC offset): ${net_system_cost:.2f}")
         solar_thermal_area = calculate_solar_thermal_area(square_footage)
         st.write(f"Yard space required for Solar Thermal: {solar_thermal_area:.2f} square feet")
+
         annual_energy_savings = traditional_grid_cost - renewable_energy_cost
         st.write(f"Annual Energy Savings: ${annual_energy_savings:.2f}")
         payback_period = calculate_payback_period(net_system_cost, annual_energy_savings)
