@@ -35,16 +35,26 @@ def calculate_energy_cost(construction_type, square_footage, primary_energy_sour
 
 def calculate_system_cost(square_footage, primary_energy_source, reserve_capacity):
     solar_pv_cost = square_footage * AVERAGE_COST_PER_WATT_PV if primary_energy_source == "Solar PV" else 0
-    solar_thermal_cost = tes_cost = chilled_beam_cost = 0
+    solar_thermal_cost = tes_cost = stirling_engine_cost = stirling_chiller_cost = chilled_beam_cost = 0
     
     if primary_energy_source == "Solar Thermal":
         solar_thermal_cost = square_footage * SOLAR_THERMAL_COST_PER_SQFT
         tes_cost = reserve_capacity * TES_COST_PER_KWH
+        stirling_engine_cost = square_footage / 1000 * STIRLING_GENERATOR_CAPACITY_PER_1000_SF * STIRLING_ENGINE_COST_PER_KW
+        stirling_chiller_cost = square_footage / 1000 * STIRLING_GENERATOR_CAPACITY_PER_1000_SF * STIRLING_CHILLER_COST_PER_KW
         chilled_beam_cost = square_footage * CHILLED_BEAM_COST_PER_SQFT
     
     traditional_hvac_cost = square_footage * TYPICAL_HVAC_COST_PER_SQFT
 
-    return solar_pv_cost, solar_thermal_cost, tes_cost, chilled_beam_cost, traditional_hvac_cost
+    return {
+        'solar_pv_cost': solar_pv_cost,
+        'solar_thermal_cost': solar_thermal_cost,
+        'tes_cost': tes_cost,
+        'stirling_engine_cost': stirling_engine_cost,
+        'stirling_chiller_cost': stirling_chiller_cost,
+        'chilled_beam_cost': chilled_beam_cost,
+        'traditional_hvac_cost': traditional_hvac_cost
+    }
 
 def calculate_solar_thermal_area(square_footage):
     return square_footage * 0.5
@@ -66,9 +76,10 @@ def main():
     primary_energy_source = st.radio("Select Primary Energy Source", 
                                      ["Solar PV", "Solar Thermal", "Electric Grid"], index=2)
 
-    reserve_capacity = 0
     if primary_energy_source == "Solar Thermal":
         reserve_capacity = st.slider("Days of Reserve Capacity", 0, 7, step=1)
+    else:
+        reserve_capacity = 0
 
     traditional_energy_kWh, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
     renewable_energy_kWh, renewable_energy_cost = calculate_energy_cost(construction_type, square_footage, primary_energy_source)
@@ -91,9 +102,7 @@ def main():
         st.write(f"Stirling Chiller: ${costs['stirling_chiller_cost']:.2f}")
         st.write(f"Chilled Beams: ${costs['chilled_beam_cost']:.2f}")
         
-        total_solar_thermal_cost = costs['solar_thermal_cost'] + costs['tes_cost'] + \
-                                   costs['stirling_engine_cost'] + costs['stirling_chiller_cost'] + \
-                                   costs['chilled_beam_cost']
+        total_solar_thermal_cost = sum(costs.values()) - costs['solar_pv_cost'] - costs['traditional_hvac_cost']
         net_system_cost = total_solar_thermal_cost - costs['traditional_hvac_cost']
         solar_thermal_area = calculate_solar_thermal_area(square_footage)
         st.write(f"Total Solar Thermal System Cost: ${total_solar_thermal_cost:.2f}")
