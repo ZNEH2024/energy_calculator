@@ -9,7 +9,7 @@ import streamlit as st
 COST_PER_KWH_BUY = 0.12  # Cost of buying electricity from the grid per kWh
 AVERAGE_COST_PER_WATT_PV = 3.25  # Average cost per watt for PV panels
 SOLAR_THERMAL_COST_PER_SQFT = 2  # Cost per square foot for solar thermal collectors
-TES_COST_PER_KWH = 0.15  # Cost per kWh for thermal energy storage capacity
+TES_COST_PER_KWH = 0.15  # Equipment cost per kWh for thermal energy storage capacity
 CHILLED_BEAM_COST_PER_SQFT = 22.5  # Cost per square foot for chilled beams
 TYPICAL_HVAC_COST_PER_SQFT = 10  # Typical HVAC cost per square foot of conditioned area
 TRADITIONAL_ANNUAL_KWH = 40000  # Estimated annual kWh for traditional construction
@@ -41,7 +41,7 @@ def calculate_system_cost(square_footage, primary_energy_source, reserve_capacit
     if primary_energy_source == "Solar Thermal":
         stirling_engine_capacity = STIRLING_GENERATOR_CAPACITY_PER_1000_SF * (square_footage / 1000)
         solar_thermal_cost = square_footage * SOLAR_THERMAL_COST_PER_SQFT
-        tes_cost = reserve_capacity * TES_COST_PER_KWH
+        tes_cost = TES_COST_PER_KWH * stirling_engine_capacity * reserve_capacity
         chilled_beam_cost = square_footage * CHILLED_BEAM_COST_PER_SQFT
         stirling_engine_cost = stirling_engine_capacity * STIRLING_ENGINE_COST_PER_KW
         stirling_chiller_cost = stirling_engine_capacity * STIRLING_CHILLER_COST_PER_KW
@@ -111,6 +111,7 @@ def main():
         solar_thermal_area = calculate_solar_thermal_area(square_footage)
         st.write(f"Yard space required for Solar Thermal: {solar_thermal_area:.2f} square feet")
         annual_energy_savings = traditional_grid_cost - renewable_energy_cost
+        st.write(f"Annual Energy Savings: ${annual_energy_savings:.2f}")
         payback_period = calculate_payback_period(net_system_cost, annual_energy_savings)
         st.write(f"Payback period for Solar Thermal: {payback_period} years")
 
