@@ -13,6 +13,7 @@ TES_COST_PER_KWH = 0.15  # Cost per kWh for thermal energy storage capacity
 CHILLED_BEAM_COST_PER_SQFT = 22.5  # Cost per square foot for chilled beams
 CHILLED_BEAM_COVERAGE_FACTOR = 0.75  # Coverage factor for chilled beams
 TYPICAL_HVAC_COST_PER_SQFT = 10  # Typical HVAC cost per square foot of conditioned area
+CONDITIONED_AREA_PERCENTAGE = 0.75  # Percentage of the house that is conditioned
 TRADITIONAL_ANNUAL_KWH = 40000  # Estimated annual kWh for traditional construction
 
 def calculate_energy_cost(construction_type, square_footage, primary_energy_source):
