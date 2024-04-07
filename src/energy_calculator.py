@@ -76,8 +76,10 @@ def main():
     square_footage = st.slider("Home Square Footage", 1000, 3500, 1422, step=100)
     primary_energy_source = st.radio("Select Primary Energy Source", 
                                      ["Solar PV", "Solar Thermal", "Electric Grid"], index=2)
-    reserve_capacity = st.slider("Days of Reserve Capacity", 0, 7, step=1) \
-                       if primary_energy_source == "Solar Thermal" else 0
+
+    reserve_capacity = 0
+    if primary_energy_source == "Solar Thermal":
+        reserve_capacity = st.slider("Days of Reserve Capacity", 0, 7, step=1)
 
     traditional_energy_kWh, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
     renewable_energy_kWh, renewable_energy_cost = calculate_energy_cost(construction_type, square_footage, primary_energy_source)
@@ -103,10 +105,13 @@ def main():
         total_solar_thermal_cost = costs['solar_thermal_cost'] + costs['tes_cost'] + \
                                    costs['stirling_engine_cost'] + costs['stirling_chiller_cost'] + \
                                    costs['chilled_beam_cost']
-        st.write(f"Total Solar Thermal System Cost: ${total_solar_thermal_cost:.2f}")
+        net_system_cost = total_solar_thermal_cost - costs['traditional_hvac_cost']
+        st.write(f"Total Solar Thermal System Cost (before HVAC offset): ${total_solar_thermal_cost:.2f}")
+        st.write(f"Net System Cost (after HVAC offset): ${net_system_cost:.2f}")
         solar_thermal_area = calculate_solar_thermal_area(square_footage)
         st.write(f"Yard space required for Solar Thermal: {solar_thermal_area:.2f} square feet")
-        payback_period = calculate_payback_period(total_solar_thermal_cost, traditional_grid_cost, renewable_energy_cost)
+        annual_energy_savings = traditional_grid_cost - renewable_energy_cost
+        payback_period = calculate_payback_period(net_system_cost, annual_energy_savings)
         st.write(f"Payback period for Solar Thermal: {payback_period} years")
 
 if __name__ == "__main__":
