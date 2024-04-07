@@ -69,8 +69,10 @@ def main():
     construction_type = st.selectbox("Select the construction type:", 
                                      ["Traditional", "Energy Star", "EnerPHit", "Passive House"])
     square_footage = st.slider("Home Square Footage", 1000, 3500, 1422, step=100)
+    
+    # Set "Electric Grid" as the default selection
     primary_energy_source = st.radio("Select Primary Energy Source", 
-                                     ["Solar PV", "Solar Thermal", "Electric Grid"])
+                                     ["Solar PV", "Solar Thermal", "Electric Grid"], index=2)
 
     if st.button('Calculate'):
         _, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
