@@ -14,6 +14,7 @@ TES_EQUIPMENT_COST = 4000  # Fixed equipment cost for Thermal Energy Storage (TE
 STIRLING_ENGINE_COST = 5000  # Estimated cost for Stirling Engine Generator
 STIRLING_CHILLER_COST = 3000  # Estimated cost for Stirling Engine Chiller
 CHILLED_BEAM_COST_PER_SQFT = 22.5  # Cost per square foot for chilled beams
+TYPICAL_HVAC_COST_PER_SQFT = 10  # Typical HVAC cost per square foot of conditioned area
 SYSTEM_LIFESPAN_YEARS = 25  # Lifespan of the solar systems in years
 
 # Reference point: $400 per month for 1,422 square feet
