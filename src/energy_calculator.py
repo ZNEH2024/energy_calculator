@@ -9,7 +9,7 @@ import streamlit as st
 COST_PER_KWH_BUY = 0.12  # Cost of buying electricity from the grid per kWh
 AVERAGE_COST_PER_WATT_PV = 3.25  # Average cost per watt for PV panels
 SOLAR_THERMAL_COST_PER_SQFT = 2  # Cost per square foot for solar thermal collectors
-TES_COST_PER_KWH = 0.15  # Equipment cost per kWh for thermal energy storage capacity
+TES_EQUIPMENT_COST = 4000  # Fixed equipment cost for Thermal Energy Storage (TES)
 CHILLED_BEAM_COST_PER_SQFT = 22.5  # Cost per square foot for chilled beams
 TYPICAL_HVAC_COST_PER_SQFT = 10  # Typical HVAC cost per square foot of conditioned area
 TRADITIONAL_ANNUAL_KWH = 40000  # Estimated annual kWh for traditional construction
@@ -29,19 +29,19 @@ def calculate_energy_cost(construction_type, square_footage, primary_energy_sour
     
     return energy_consumption, energy_consumption * COST_PER_KWH_BUY
 
-def calculate_system_cost(square_footage, primary_energy_source, reserve_capacity):
-    solar_pv_cost = square_footage * AVERAGE_COST_PER_WATT_PV if primary_energy_source == "Solar PV" else 0
-    solar_thermal_cost = tes_cost = chilled_beam_cost = stirling_engine_cost = stirling_chiller_cost = 0
+def calculate_system_cost(square_footage, primary_energy_source):
+    solar_pv_cost = solar_thermal_cost = tes_cost = chilled_beam_cost = 0
+    stirling_engine_cost = stirling_chiller_cost = 0
 
     if primary_energy_source == "Solar Thermal":
         stirling_engine_capacity = STIRLING_GENERATOR_CAPACITY_PER_1000_SF * (square_footage / 1000)
         solar_thermal_cost = square_footage * SOLAR_THERMAL_COST_PER_SQFT
-        tes_cost = TES_COST_PER_KWH * stirling_engine_capacity * reserve_capacity
+        tes_cost = TES_EQUIPMENT_COST
         chilled_beam_cost = square_footage * CHILLED_BEAM_COST_PER_SQFT
         stirling_engine_cost = stirling_engine_capacity * STIRLING_ENGINE_COST_PER_KW
         stirling_chiller_cost = stirling_engine_capacity * STIRLING_CHILLER_COST_PER_KW
 
-    traditional_hvac_cost = square_footage * TYPICAL_HVAC_COST_PER_SQFT
+    traditional_hvac_cost = square_footage * TYPICAL_HVAC_COST_PER_SQFT if primary_energy_source != "Solar Thermal" else 0
 
     return {
         'solar_pv_cost': solar_pv_cost,
@@ -72,39 +72,41 @@ def main():
     primary_energy_source = st.radio("Select Primary Energy Source", 
                                      ["Solar PV", "Solar Thermal", "Electric Grid"], index=2)
 
-    reserve_capacity = 0
-    if primary_energy_source == "Solar Thermal":
-        reserve_capacity = st.slider("Days of Reserve Capacity", 0, 7, step=1)
-
     _, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
 
-    costs = calculate_system_cost(square_footage, primary_energy_source, reserve_capacity)
+    costs = calculate_system_cost(square_footage, primary_energy_source)
     
     st.write(f"Traditional grid energy cost for {square_footage} SF home: ${traditional_grid_cost:.2f}")
 
     if primary_energy_source == "Solar PV":
-        # Add logic for Solar PV
-        pass  # Placeholder for actual logic
-
+        st.write(f"Solar PV System Cost: ${costs['solar_pv_cost']:.2f}")
+        st.write(f"Savings with Solar PV: ${traditional_grid_cost - costs['solar_pv_cost']:.2f}")
+        payback_period = calculate_payback_period(costs['solar_pv_cost'], traditional_grid_cost - costs['solar_pv_cost'])
+        st.write(f"Payback period for Solar PV: {payback_period} years")
+        
     elif primary_energy_source == "Solar Thermal":
         st.write("Solar Thermal System Cost Breakdown:")
         st.write(f"Solar Thermal Array: ${costs['solar_thermal_cost']:.2f}")
-        st.write(f"TES (Thermal Energy Storage): ${costs['tes_cost']:.2f}")
+        st.write(f"Thermal Energy Storage (TES): ${costs['tes_cost']:.2f}")
         st.write(f"Stirling Engine: ${costs['stirling_engine_cost']:.2f}")
         st.write(f"Stirling Chiller: ${costs['stirling_chiller_cost']:.2f}")
         st.write(f"Chilled Beams: ${costs['chilled_beam_cost']:.2f}")
-
+        
         total_solar_thermal_cost = costs['solar_thermal_cost'] + costs['tes_cost'] + \
                                    costs['stirling_engine_cost'] + costs['stirling_chiller_cost'] + \
                                    costs['chilled_beam_cost']
-        st.write(f"Total Solar Thermal System Cost (before HVAC offset): ${total_solar_thermal_cost:.2f}")
+        st.write(f"Total Solar Thermal System Cost: ${total_solar_thermal_cost:.2f}")
+        
         net_system_cost = total_solar_thermal_cost - costs['traditional_hvac_cost']
-        st.write(f"Net System Cost (after HVAC offset): ${net_system_cost:.2f}")
+        st.write(f"Net System Cost (after traditional HVAC offset): ${net_system_cost:.2f}")
+        
         solar_thermal_area = calculate_solar_thermal_area(square_footage)
-        st.write(f"Yard space required for Solar Thermal: {solar_thermal_area:.2f}")
+        st.write(f"Yard space required for Solar Thermal: {solar_thermal_area:.2f} square feet")
 
-        annual_energy_savings = traditional_grid_cost  # As Solar Thermal covers all electricity needs
+        # Since Solar Thermal covers all electricity needs, the annual energy savings are the full traditional grid cost
+        annual_energy_savings = traditional_grid_cost
         st.write(f"Annual Energy Savings: ${annual_energy_savings:.2f}")
+        
         payback_period = calculate_payback_period(net_system_cost, annual_energy_savings)
         st.write(f"Payback period for Solar Thermal: {payback_period} years")
 
