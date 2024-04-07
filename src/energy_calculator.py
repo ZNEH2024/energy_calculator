@@ -77,18 +77,14 @@ def main():
         reserve_capacity = st.slider("Days of Reserve Capacity", 0, 7, step=1)
 
     _, traditional_grid_cost = calculate_energy_cost("Traditional", square_footage, "Electric Grid")
-    _, renewable_energy_cost = calculate_energy_cost(construction_type, square_footage, primary_energy_source)
 
     costs = calculate_system_cost(square_footage, primary_energy_source, reserve_capacity)
     
     st.write(f"Traditional grid energy cost for {square_footage} SF home: ${traditional_grid_cost:.2f}")
 
     if primary_energy_source == "Solar PV":
-        st.write(f"Solar PV System Cost: ${costs['solar_pv_cost']:.2f}")
-        st.write(f"Savings with Solar PV: ${traditional_grid_cost - renewable_energy_cost:.2f}")
-        payback_period = calculate_payback_period(costs['solar_pv_cost'], traditional_grid_cost - renewable_energy_cost)
-        st.write(f"Payback period for Solar PV: {payback_period} years")
-        
+        # Logic for Solar PV
+
     elif primary_energy_source == "Solar Thermal":
         st.write("Solar Thermal System Cost Breakdown:")
         st.write(f"Solar Thermal Array: ${costs['solar_thermal_cost']:.2f}")
@@ -106,7 +102,7 @@ def main():
         solar_thermal_area = calculate_solar_thermal_area(square_footage)
         st.write(f"Yard space required for Solar Thermal: {solar_thermal_area:.2f} square feet")
 
-        annual_energy_savings = traditional_grid_cost - renewable_energy_cost
+        annual_energy_savings = traditional_grid_cost  # As Solar Thermal covers all electricity needs
         st.write(f"Annual Energy Savings: ${annual_energy_savings:.2f}")
         payback_period = calculate_payback_period(net_system_cost, annual_energy_savings)
         st.write(f"Payback period for Solar Thermal: {payback_period} years")
